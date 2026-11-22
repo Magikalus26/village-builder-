@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#3d2b1f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Village Builder" />
+  <meta name="description" content="Village Builder: Medieval Parish — Construisez votre paroisse médiévale en 3D brique par brique." />
+
+  <!-- Icône du jeu, écran d'accueil iOS & vignette sociale -->
+  <link rel="icon" type="image/jpeg" href="./assets/icon.jpg" />
+  <link rel="apple-touch-icon" href="./assets/icon.jpg" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <meta property="og:title" content="Village Builder: Medieval Parish" />
+  <meta property="og:description" content="Construisez la Petite Église, la Mairie et 5 maisons médiévales brique par brique en 3D." />
+  <meta property="og:image" content="./assets/icon.jpg" />
+
+  <title>Village Builder: Medieval Parish</title>
+  <link rel="stylesheet" href="./style.css" />
+
+  <!-- Three.js ES Module Import Map (GitHub Pages & iOS Safari ready) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- 3D WebGL Canvas Container -->
+  <div id="game-container" aria-label="Village Builder 3D"></div>
+
+  <!-- ===================================================================== -->
+  <!-- ÉCRAN D'ACCUEIL (MENU PRINCIPAL) — 3 ZONES GARANTIES SANS SUPERPOSITION -->
+  <!-- ===================================================================== -->
+  <section id="main-menu" class="menu-screen" role="dialog" aria-modal="true" aria-label="Menu principal">
+    <div class="menu-backdrop" aria-hidden="true"></div>
+
+    <!-- Zone 1 : En-tête Titre & Vignette (en haut, ne chevauche jamais la scène) -->
+    <header class="menu-header">
+      <div class="menu-brand-card">
+        <img src="./assets/icon.jpg" alt="Icône Village Builder" class="menu-app-icon" />
+        <div class="menu-title-stack">
+          <h1 class="menu-title">VILLAGE BUILDER</h1>
+          <span class="menu-subtitle">MEDIEVAL PARISH</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Zone 2 : Fenêtre centrale laissant le décor villageois 100 % visible -->
+    <div class="menu-scenic-window" aria-hidden="true">
+      <div class="menu-scenic-frame">
+        <img src="./assets/menu.jpg" alt="" class="menu-scenic-art" />
+        <div class="menu-scenic-gloss"></div>
+      </div>
+    </div>
+
+    <!-- Zone 3 : Dock de boutons en bas (ne chevauche jamais ni le titre ni le décor) -->
+    <nav class="menu-actions-dock" aria-label="Actions principales">
+      <button id="btn-continue" class="btn-wood btn-continue hidden" type="button">
+        <span class="btn-ico" aria-hidden="true">▶</span>
+        <span class="btn-label">CONTINUER</span>
+        <span id="continue-meta" class="btn-badge"></span>
+      </button>
+
+      <button id="btn-play" class="btn-gold btn-primary" type="button">
+        <span class="btn-ico" aria-hidden="true">⚒</span>
+        <span id="btn-play-label" class="btn-label">JOUER</span>
+      </button>
+
+      <div class="menu-secondary-row">
+        <button id="btn-menu-codex" class="btn-wood btn-half" type="button">
+          <span class="btn-ico" aria-hidden="true">📖</span>
+          <span class="btn-label">CODEX</span>
+        </button>
+        <button id="btn-menu-options" class="btn-wood btn-half" type="button">
+          <span class="btn-ico" aria-hidden="true">⚙</span>
+          <span class="btn-label">OPTIONS</span>
+        </button>
+      </div>
+    </nav>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- HUD DIÉGÉTIQUE MINIMAL (ZÉRO TEXTE ENVAHISSANT)                       -->
+  <!-- ===================================================================== -->
+  <div id="hud" class="hud hidden" aria-hidden="true">
+    <!-- Haut gauche : Menu + pastilles icônes de ressources compactes -->
+    <div class="hud-top-left">
+      <button id="btn-hud-menu" class="hud-circle-btn" type="button" aria-label="Menu">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <line x1="4" y1="7" x2="20" y2="7"></line>
+          <line x1="4" y1="12" x2="20" y2="12"></line>
+          <line x1="4" y1="17" x2="20" y2="17"></line>
+        </svg>
+      </button>
+
+      <div class="res-strip" aria-label="Ressources">
+        <div class="res-pill" data-res="bricks" title="Briques">
+          <span class="res-dot res-brick"></span>
+          <span id="hud-bricks">0</span>
+        </div>
+        <div class="res-pill" data-res="slabs" title="Dalles">
+          <span class="res-dot res-slab"></span>
+          <span id="hud-slabs">0</span>
+        </div>
+        <div class="res-pill" data-res="beams" title="Poutres">
+          <span class="res-dot res-beam"></span>
+          <span id="hud-beams">0</span>
+        </div>
+        <div class="res-pill" data-res="stone" title="Pierre brute">
+          <span class="res-dot res-stone"></span>
+          <span id="hud-stone">0</span>
+        </div>
+        <div class="res-pill" data-res="wood" title="Rondins">
+          <span class="res-dot res-wood"></span>
+          <span id="hud-wood">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Haut droite : Avancement chantier actif (icône + chiffre) & Codex -->
+    <div class="hud-top-right">
+      <div id="hud-site-ring" class="site-progress-pill hidden" aria-label="Chantier actif">
+        <span class="site-ring-icon" id="hud-site-icon">⛪</span>
+        <span class="site-ring-count" id="hud-site-count">0/12000</span>
+      </div>
+
+      <button id="btn-hud-codex" class="hud-codex-btn" type="button" aria-label="Codex de l'Architecte">
+        <span class="codex-icon">📖</span>
+        <span id="codex-dot" class="notify-dot hidden"></span>
+      </button>
+    </div>
+
+    <!-- Réticule diégétique central (s'illumine quand aim-snappé) -->
+    <div id="reticle" class="reticle" aria-hidden="true">
+      <div class="reticle-ring"></div>
+      <div class="reticle-dot"></div>
+    </div>
+
+    <!-- Badge icône discret lorsque la charrette est accrochée -->
+    <div id="hud-cart-badge" class="cart-attached-pill hidden" aria-label="Charrette">
+      <span>🛞</span>
+      <span id="hud-cart-count">0/48</span>
+    </div>
+
+    <!-- Zone Tactile Gauche : Joystick virtuel fluide -->
+    <div id="joystick-zone" class="joystick-zone">
+      <div id="joystick-base" class="joystick-base">
+        <div id="joystick-knob" class="joystick-knob"></div>
+      </div>
+    </div>
+
+    <!-- Zone Tactile Droite : Orientation caméra par glissement -->
+    <div id="look-zone" class="look-zone"></div>
+
+    <!-- Arc ergonomique pouce droit : boutons d'action contextuels (icônes) -->
+    <div class="action-cluster">
+      <!-- Bouton secondaire : Charrette (saisir / charger / détacher) -->
+      <button id="btn-act-cart" class="act-btn act-secondary hidden" type="button" aria-label="Charrette">
+        <span id="btn-act-cart-ico" class="act-ico">🛞</span>
+      </button>
+
+      <!-- Bouton secondaire : Charger stock <-> charrette -->
+      <button id="btn-act-load" class="act-btn act-secondary hidden" type="button" aria-label="Charger">
+        <span id="btn-act-load-ico" class="act-ico">📦</span>
+      </button>
+
+      <!-- Bouton secondaire : Sauter -->
+      <button id="btn-act-jump" class="act-btn act-small" type="button" aria-label="Sauter">
+        <span class="act-ico">⇪</span>
+      </button>
+
+      <!-- Bouton principal contextuel : Poser brique / Frapper / Scier / Ouvrir porte -->
+      <button id="btn-act-primary" class="act-btn act-primary" type="button" aria-label="Action">
+        <span id="btn-act-primary-ico" class="act-ico-lg">⚒</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- INTERFACE DU BANC DE SCIE (CAMÉRA DROITE VERROUILLÉE, ZÉRO INVERSION) -->
+  <!-- ===================================================================== -->
+  <section id="workbench-ui" class="workbench-ui hidden" role="dialog" aria-label="Banc de scie">
+    <div class="wb-top-bar">
+      <div class="wb-stock-pills">
+        <span class="wb-chip"><span class="res-dot res-stone"></span><b id="wb-stone">0</b></span>
+        <span class="wb-chip"><span class="res-dot res-wood"></span><b id="wb-wood">0</b></span>
+        <span class="wb-chip"><span class="res-dot res-slab"></span><b id="wb-slabs">0</b></span>
+        <span class="wb-chip"><span class="res-dot res-brick"></span><b id="wb-bricks">0</b></span>
+        <span class="wb-chip"><span class="res-dot res-beam"></span><b id="wb-beams">0</b></span>
+      </div>
+      <button id="btn-wb-exit" class="hud-circle-btn wb-close-btn" type="button" aria-label="Quitter l'établi">✕</button>
+    </div>
+
+    <div class="wb-bottom-dock">
+      <div class="wb-recipes">
+        <button class="wb-recipe-btn active" data-recipe="slab" type="button">
+          <span class="wb-r-ico">⬜</span>
+          <span class="wb-r-name">Dalles ×4</span>
+          <span class="wb-r-cost">1 Pierre</span>
+        </button>
+        <button class="wb-recipe-btn" data-recipe="stoneBrick" type="button">
+          <span class="wb-r-ico">🧱</span>
+          <span class="wb-r-name">Briques ×6</span>
+          <span class="wb-r-cost">1 Pierre</span>
+        </button>
+        <button class="wb-recipe-btn" data-recipe="beam" type="button">
+          <span class="wb-r-ico">🪵</span>
+          <span class="wb-r-name">Poutres ×4</span>
+          <span class="wb-r-cost">1 Rondin</span>
+        </button>
+      </div>
+
+      <button id="btn-wb-cut" class="btn-gold wb-cut-btn" type="button">
+        <span class="btn-ico">🪚</span>
+        <span class="btn-label">DÉCOUPER</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- CODEX DE L'ARCHITECTE — STYLE "NEO ADVENTURE"                         -->
+  <!-- ===================================================================== -->
+  <section id="codex-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Codex de l'Architecte">
+    <div class="codex-book">
+      <div class="codex-spine" aria-hidden="true"></div>
+
+      <header class="codex-header">
+        <div class="codex-title-wrap">
+          <span class="codex-emblem">⚜</span>
+          <div>
+            <h2>Codex de l'Architecte</h2>
+            <p id="codex-total-summary" class="codex-sub">0 / 36 800 briques posées</p>
+          </div>
+        </div>
+        <button id="btn-codex-close" class="codex-close" type="button" aria-label="Fermer">✕</button>
+      </header>
+
+      <nav class="codex-tabs" role="tablist">
+        <button class="codex-tab active" data-tab="quests" role="tab" type="button">📜 Chantiers</button>
+        <button class="codex-tab" data-tab="plan" role="tab" type="button">🗺 Plan</button>
+        <button class="codex-tab" data-tab="stock" role="tab" type="button">📦 Réserves</button>
+      </nav>
+
+      <div id="codex-body" class="codex-body">
+        <!-- Onglet 1 : Quêtes & Chantiers -->
+        <div id="codex-tab-quests" class="codex-panel"></div>
+
+        <!-- Onglet 2 : Plan officiel du village (IMG_0581 / assets/plan.jpg) -->
+        <div id="codex-tab-plan" class="codex-panel hidden">
+          <div class="codex-plan-frame">
+            <img src="./assets/plan.jpg" alt="Plan architectural du village" class="codex-plan-img" />
+          </div>
+          <div class="codex-legend-grid">
+            <div class="legend-chip">⛪ Petite Église — 12 000</div>
+            <div class="legend-chip">🏛 Mairie — 8 500</div>
+            <div class="legend-chip">🏡 5 Maisons — 2 500 à 4 500</div>
+            <div class="legend-chip">⛏ Carrière (Est) & Forêt (Ouest)</div>
+          </div>
+        </div>
+
+        <!-- Onglet 3 : Réserves, Charrette & Aide -->
+        <div id="codex-tab-stock" class="codex-panel hidden"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL OPTIONS                                                         -->
+  <!-- ===================================================================== -->
+  <section id="options-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Options">
+    <div class="options-card">
+      <header class="options-header">
+        <h2>Options</h2>
+        <button id="btn-options-close" class="codex-close" type="button" aria-label="Fermer">✕</button>
+      </header>
+
+      <div class="options-list">
+        <label class="opt-row">
+          <span>Son & Ambiance</span>
+          <input id="opt-sound" type="checkbox" checked />
+        </label>
+
+        <label class="opt-row">
+          <span>Sensibilité caméra</span>
+          <input id="opt-sens" type="range" min="0.4" max="2.2" step="0.1" value="1.0" />
+        </label>
+
+        <label class="opt-row">
+          <span>Ombres haute qualité</span>
+          <input id="opt-shadows" type="checkbox" checked />
+        </label>
+
+        <div class="opt-actions">
+          <button id="btn-opt-save" class="btn-wood" type="button">💾 Sauvegarder</button>
+          <button id="btn-opt-reset" class="btn-danger" type="button">🗑 Nouvelle Partie</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
