@@ -35,9 +35,9 @@ export class Handcart {
   }
 
   _buildCartMesh() {
-    const woodMat = new THREE.MeshLambertMaterial({ map: this.textures.wood });
-    const darkWood = new THREE.MeshLambertMaterial({ color: '#593619' });
-    const ironMat = new THREE.MeshStandardMaterial({ color: '#40454d', metalness: 0.65, roughness: 0.45 });
+    const woodMat = this.textures.createPBRMaterial('wood', { normalStrength: 1.15 });
+    const darkWood = this.textures.createPBRMaterial('wood', { color: '#6b411e', normalStrength: 1.05 });
+    const ironMat = new THREE.MeshStandardMaterial({ color: '#40454d', metalness: 0.72, roughness: 0.38 });
 
     // Fond de caisse
     const bed = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.1, 1.62), woodMat);
@@ -172,11 +172,11 @@ export class Handcart {
     pushUnits('wood', this.cargo.wood, ratio);
 
     const mats = {
-      bricks: new THREE.MeshLambertMaterial({ map: this.textures.brick, color: '#cf734e' }),
-      slabs: new THREE.MeshLambertMaterial({ map: this.textures.slab, color: '#dfe3e8' }),
-      beams: new THREE.MeshLambertMaterial({ map: this.textures.wood, color: '#8f5a2c' }),
-      stone: new THREE.MeshLambertMaterial({ map: this.textures.stone, color: '#9ea4ad' }),
-      wood: new THREE.MeshLambertMaterial({ color: '#6b4222' }),
+      bricks: this.textures.createPBRMaterial('brick', { color: '#cf734e', normalStrength: 1.1 }),
+      slabs: this.textures.createPBRMaterial('slab', { color: '#dfe3e8', normalStrength: 1.0 }),
+      beams: this.textures.createPBRMaterial('wood', { color: '#9c6434', normalStrength: 1.1 }),
+      stone: this.textures.createPBRMaterial('stone', { color: '#a8aeb6', normalStrength: 1.2 }),
+      wood: this.textures.createPBRMaterial('wood', { color: '#754823', normalStrength: 1.1 }),
     };
 
     const cols = 4;

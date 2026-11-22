@@ -62,9 +62,9 @@ export class InteriorSystem {
   _buildInteractiveDoor(cfg) {
     const hw = cfg.width * 0.5;
     const hd = cfg.depth * 0.5;
-    const woodMat = new THREE.MeshLambertMaterial({ map: this.textures.wood, color: '#825027' });
-    const frameMat = new THREE.MeshLambertMaterial({ color: '#4c2d15' });
-    const ironMat = new THREE.MeshStandardMaterial({ color: '#2f343b', metalness: 0.7, roughness: 0.4 });
+    const woodMat = this.textures.createPBRMaterial('wood', { color: '#945d30', normalStrength: 1.15 });
+    const frameMat = this.textures.createPBRMaterial('wood', { color: '#5c361a', normalStrength: 1.05 });
+    const ironMat = new THREE.MeshStandardMaterial({ color: '#2f343b', metalness: 0.76, roughness: 0.36 });
 
     const frameGroup = new THREE.Group();
     const localPos = new THREE.Vector3();
@@ -127,15 +127,19 @@ export class InteriorSystem {
     const w = cfg.width;
     const d = cfg.depth;
     const h = cfg.wallHeight;
-    const woodMat = new THREE.MeshLambertMaterial({ map: this.textures.wood, color: '#6b4222' });
+    const woodMat = this.textures.createPBRMaterial('wood', { color: '#7a4c26', normalStrength: 1.0 });
 
-    const roofTex =
+    const roofKind =
       cfg.style === 'chaumiere'
-        ? this.textures.thatch
+        ? 'thatch'
         : cfg.style === 'forge' || cfg.style === 'marchand'
-          ? this.textures.roofRed
-          : this.textures.roofSlate;
-    const roofMat = new THREE.MeshLambertMaterial({ map: roofTex, side: THREE.DoubleSide });
+          ? 'roofRed'
+          : 'roofSlate';
+    const roofMat = this.textures.createPBRMaterial(roofKind, {
+      normalStrength: 1.25,
+      side: THREE.DoubleSide,
+    });
+    const slateMat = this.textures.createPBRMaterial('roofSlate', { normalStrength: 1.15 });
 
     // Toit à deux pans ouvert par-dessous (charpente visible depuis l'intérieur marchable !)
     const ridgeH = cfg.style === 'church' ? 2.8 : cfg.style === 'mairie' ? 2.6 : 2.1;
@@ -165,17 +169,14 @@ export class InteriorSystem {
 
     // Flèche + cloche dorée sur la Petite Église
     if (cfg.style === 'church') {
-      const spire = new THREE.Mesh(
-        new THREE.ConeGeometry(2.65, 5.2, 4),
-        new THREE.MeshLambertMaterial({ map: this.textures.roofSlate })
-      );
+      const spire = new THREE.Mesh(new THREE.ConeGeometry(2.65, 5.2, 4), slateMat);
       spire.position.set(-w * 0.5 + 1.75, 12.2, 0);
       spire.rotation.y = Math.PI / 4;
       spire.castShadow = true;
       roofGroup.add(spire);
 
       // Croix au sommet de la flèche
-      const goldMat = new THREE.MeshStandardMaterial({ color: '#ffd447', metalness: 0.7, roughness: 0.3 });
+      const goldMat = new THREE.MeshStandardMaterial({ color: '#ffd447', metalness: 0.75, roughness: 0.25 });
       const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.1, 0.1), goldMat);
       crossV.position.set(-w * 0.5 + 1.75, 15.1, 0);
       const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.65), goldMat);
@@ -190,7 +191,7 @@ export class InteriorSystem {
       // Calotte conique sur l'abside Est
       const apseRoof = new THREE.Mesh(
         new THREE.ConeGeometry(2.6, 2.2, 12, 1, false, 0, Math.PI),
-        new THREE.MeshLambertMaterial({ map: this.textures.roofSlate })
+        slateMat
       );
       apseRoof.position.set(w * 0.5, h + 1.0, 0);
       roofGroup.add(apseRoof);
@@ -198,10 +199,7 @@ export class InteriorSystem {
 
     // Campanile sur la Mairie
     if (cfg.style === 'mairie') {
-      const cupolaRoof = new THREE.Mesh(
-        new THREE.ConeGeometry(2.3, 2.9, 4),
-        new THREE.MeshLambertMaterial({ map: this.textures.roofSlate })
-      );
+      const cupolaRoof = new THREE.Mesh(new THREE.ConeGeometry(2.3, 2.9, 4), slateMat);
       cupolaRoof.position.set(0, h + 4.0, 0);
       cupolaRoof.rotation.y = Math.PI / 4;
       cupolaRoof.castShadow = true;
@@ -210,9 +208,9 @@ export class InteriorSystem {
   }
 
   _buildFurniture(cfg, g) {
-    const woodMat = new THREE.MeshLambertMaterial({ map: this.textures.wood });
-    const darkWood = new THREE.MeshLambertMaterial({ color: '#4f2f16' });
-    const stoneMat = new THREE.MeshLambertMaterial({ map: this.textures.stone });
+    const woodMat = this.textures.createPBRMaterial('wood', { normalStrength: 1.05 });
+    const darkWood = this.textures.createPBRMaterial('wood', { color: '#5c361a', normalStrength: 1.0 });
+    const stoneMat = this.textures.createPBRMaterial('stone', { normalStrength: 1.15 });
     const goldMat = new THREE.MeshStandardMaterial({ color: '#ffd34e', metalness: 0.72, roughness: 0.25 });
     const clothWhite = new THREE.MeshLambertMaterial({ color: '#f7f1e1' });
     const clothRed = new THREE.MeshLambertMaterial({ color: '#a82c2c' });

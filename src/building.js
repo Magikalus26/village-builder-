@@ -404,7 +404,11 @@ export class BuildingSystem {
   }
 
   _initBuildings() {
-    const brickMat = new THREE.MeshLambertMaterial({ map: this.textures.brick });
+    const brickMat = this.textures.createPBRMaterial('brick', {
+      normalStrength: 1.15,
+      roughness: 0.92,
+      metalness: 0.03,
+    });
 
     for (const cfg of VILLAGE_LAYOUT.buildings) {
       const slots = generateBuildingSlots(cfg);
@@ -572,6 +576,8 @@ export class BuildingSystem {
 
     building.placedMesh.setMatrixAt(instanceIdx, this._dummy.matrix);
     this._color.setHex(slot.colorHex);
+    const jitter = (((slotIdx * 2654435761) >>> 0) % 1000) / 1000;
+    this._color.offsetHSL((jitter - 0.5) * 0.025, (jitter - 0.5) * 0.06, (jitter - 0.5) * 0.09);
     building.placedMesh.setColorAt(instanceIdx, this._color);
     building.placedMesh.count = building.placedCount;
     building.placedMesh.instanceMatrix.needsUpdate = true;

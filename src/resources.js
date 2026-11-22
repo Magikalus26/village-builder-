@@ -2,7 +2,11 @@
 // Blocs de pierre et rondins détachés avec physique dynamique (gravité, rebond, roulement, spin)
 
 import * as THREE from 'three';
-import { VILLAGE_LAYOUT } from './world.js';
+import {
+  VILLAGE_LAYOUT,
+  buildSculptedOakGeometries,
+  buildSculptedPineGeometries,
+} from './world.js';
 
 export class ResourceSystem {
   constructor(scene, textures, audio) {
@@ -14,11 +18,22 @@ export class ResourceSystem {
     this.ragdolls = [];      // Blocs / rondins physiques libres au sol
     this.chips = [];         // Particules d'impact
 
-    this.stoneMat = new THREE.MeshLambertMaterial({ map: textures.stone, color: '#c4c7cc' });
-    this.darkStoneMat = new THREE.MeshLambertMaterial({ map: textures.stone, color: '#9ea3aa' });
-    this.barkMat = new THREE.MeshLambertMaterial({ color: '#6b4222' });
-    this.logEndMat = new THREE.MeshLambertMaterial({ color: '#d9b382' });
-    this.canopyMat = new THREE.MeshLambertMaterial({ color: '#479c35' });
+    this.stoneMat = textures.createPBRMaterial('stone', { color: '#cccfd4', normalStrength: 1.25 });
+    this.darkStoneMat = textures.createPBRMaterial('stone', { color: '#a5aab0', normalStrength: 1.3 });
+    this.barkMat = textures.createPBRMaterial('wood', { color: '#784c28', normalStrength: 1.15 });
+    this.logEndMat = new THREE.MeshStandardMaterial({ color: '#d9b382', roughness: 0.82 });
+    this.treeBarkMat = new THREE.MeshStandardMaterial({
+      map: textures.wood,
+      normalMap: textures.sets.wood.normalMap,
+      normalScale: new THREE.Vector2(1.1, 1.1),
+      roughness: 0.9,
+      vertexColors: true,
+    });
+    this.canopyMat = new THREE.MeshStandardMaterial({
+      vertexColors: true,
+      roughness: 0.84,
+      metalness: 0.0,
+    });
 
     this._spawnQuarryNodes();
     this._spawnForestNodes();
@@ -43,7 +58,6 @@ export class ResourceSystem {
       mesh.receiveShadow = true;
       grp.add(mesh);
 
-      // Petit éclat rocheux accolé pour un volume naturel
       const sub = new THREE.Mesh(rockGeo, this.darkStoneMat);
       sub.scale.setScalar(scale * 0.52);
       sub.position.set(scale * 0.75, scale * 0.35, scale * 0.3);
@@ -73,33 +87,27 @@ export class ResourceSystem {
       [0, 0, 1.05], [-5.2, -3.2, 1.15], [4.6, -4.4, 0.95], [-6.8, 3.8, 1.2],
       [3.5, 5.2, 1.0], [-2.2, 6.6, 1.1], [6.8, 1.2, 1.05], [-8.4, -1.2, 1.15],
       [-1.5, -7.4, 1.1], [5.8, -8.2, 0.95], [1.8, -2.8, 0.92],
-      // Deux arbres accessibles près du chemin ouest
       [14, -6, 1.0], [16, 4, 0.95],
     ];
 
-    const trunkGeo = new THREE.CylinderGeometry(0.26, 0.38, 3.1, 7);
-    const foliageGeo = new THREE.DodecahedronGeometry(1.75, 1);
+    const oak = buildSculptedOakGeometries();
+    const pine = buildSculptedPineGeometries();
 
     offsets.forEach(([ox, oz, scale], idx) => {
       const grp = new THREE.Group();
-      const trunk = new THREE.Mesh(trunkGeo, this.barkMat);
-      trunk.position.y = 1.55 * scale;
+      const spec = idx % 3 === 0 ? pine : oak;
+
+      const trunk = new THREE.Mesh(spec.trunkGeo, this.treeBarkMat);
       trunk.scale.setScalar(scale);
       trunk.castShadow = true;
       trunk.receiveShadow = true;
       grp.add(trunk);
 
-      const crown1 = new THREE.Mesh(foliageGeo, this.canopyMat);
-      crown1.position.set(0, 3.8 * scale, 0);
-      crown1.scale.set(scale * 1.05, scale * 0.92, scale);
-      crown1.castShadow = true;
-      grp.add(crown1);
-
-      const crown2 = new THREE.Mesh(foliageGeo, this.canopyMat);
-      crown2.position.set(0.6 * scale, 4.6 * scale, -0.3 * scale);
-      crown2.scale.setScalar(scale * 0.68);
-      crown2.castShadow = true;
-      grp.add(crown2);
+      const canopy = new THREE.Mesh(spec.canopyGeo, this.canopyMat);
+      canopy.scale.setScalar(scale);
+      canopy.castShadow = true;
+      canopy.receiveShadow = true;
+      grp.add(canopy);
 
       grp.position.set(f.x + ox, 0, f.z + oz);
       grp.rotation.y = idx * 0.9;
@@ -111,7 +119,7 @@ export class ResourceSystem {
         baseScale: 1,
         hp: 3,
         maxHp: 3,
-        radius: 1.25 * scale,
+        radius: 1.35 * scale,
         shakeTimer: 0,
         respawnTimer: 0,
         active: true,

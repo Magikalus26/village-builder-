@@ -66,10 +66,10 @@ export class WorkbenchStation {
   }
 
   _buildMesh() {
-    const woodMat = new THREE.MeshLambertMaterial({ map: this.textures.wood });
-    const darkWoodMat = new THREE.MeshLambertMaterial({ color: '#543318' });
-    const metalMat = new THREE.MeshStandardMaterial({ color: '#cfd6df', metalness: 0.72, roughness: 0.28 });
-    const brassMat = new THREE.MeshStandardMaterial({ color: '#d4a448', metalness: 0.5, roughness: 0.35 });
+    const woodMat = this.textures.createPBRMaterial('wood', { normalStrength: 1.15 });
+    const darkWoodMat = this.textures.createPBRMaterial('wood', { color: '#6b4222', normalStrength: 1.0 });
+    const metalMat = new THREE.MeshStandardMaterial({ color: '#cfd6df', metalness: 0.78, roughness: 0.24 });
+    const brassMat = new THREE.MeshStandardMaterial({ color: '#d4a448', metalness: 0.6, roughness: 0.32 });
 
     // Plateau de l'établi
     const tabletop = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.16, 1.35), woodMat);
@@ -114,8 +114,9 @@ export class WorkbenchStation {
 
     // Pièces de démonstration sur la table (se séparent en deux lors de la découpe!)
     const pieceGeo = new THREE.BoxGeometry(0.42, 0.24, 0.56);
-    this.workpieceLeft = new THREE.Mesh(pieceGeo, new THREE.MeshLambertMaterial({ map: this.textures.slab }));
-    this.workpieceRight = new THREE.Mesh(pieceGeo, new THREE.MeshLambertMaterial({ map: this.textures.slab }));
+    const slabPbr = this.textures.createPBRMaterial('slab', { normalStrength: 1.1 });
+    this.workpieceLeft = new THREE.Mesh(pieceGeo, slabPbr);
+    this.workpieceRight = new THREE.Mesh(pieceGeo, slabPbr);
     this.workpieceLeft.position.set(-0.22, 1.16, 0.04);
     this.workpieceRight.position.set(0.22, 1.16, 0.04);
     this.workpieceLeft.castShadow = true;
@@ -132,7 +133,7 @@ export class WorkbenchStation {
     });
     const canopy = new THREE.Mesh(
       new THREE.BoxGeometry(2.9, 0.12, 1.4),
-      new THREE.MeshLambertMaterial({ map: this.textures.roofRed })
+      this.textures.createPBRMaterial('roofRed', { normalStrength: 1.1 })
     );
     canopy.position.set(0, 2.55, -0.2);
     canopy.rotation.x = 0.24;
@@ -186,12 +187,8 @@ export class WorkbenchStation {
     if (!WORKBENCH_RECIPES[recipeId]) return;
     this.selectedRecipe = recipeId;
     const r = WORKBENCH_RECIPES[recipeId];
-    const tex = recipeId === 'slab'
-      ? this.textures.slab
-      : recipeId === 'stoneBrick'
-        ? this.textures.brick
-        : this.textures.wood;
-    const mat = new THREE.MeshLambertMaterial({ map: tex, color: r.color });
+    const kind = recipeId === 'slab' ? 'slab' : recipeId === 'stoneBrick' ? 'brick' : 'wood';
+    const mat = this.textures.createPBRMaterial(kind, { color: r.color, normalStrength: 1.15 });
     this.workpieceLeft.material = mat;
     this.workpieceRight.material = mat;
 

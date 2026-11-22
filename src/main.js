@@ -71,7 +71,7 @@ class VillageBuilderGame {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.08;
+    this.renderer.toneMappingExposure = 1.12;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(this.renderer.domElement);
 
@@ -186,7 +186,7 @@ class VillageBuilderGame {
 
     this.heldBrickMesh = new THREE.Mesh(
       new THREE.BoxGeometry(0.22, 0.12, 0.14),
-      new THREE.MeshLambertMaterial({ map: this.textures.brick, color: '#cf7c55' })
+      this.textures.createPBRMaterial('brick', { color: '#cf7c55', normalStrength: 1.0 })
     );
     this.heldBrickMesh.visible = false;
 
@@ -527,7 +527,7 @@ class VillageBuilderGame {
     const elapsed = this.clock.elapsedTime;
 
     this.controls.update(dt);
-    this.world.update(dt, elapsed);
+    this.world.update(dt, elapsed, this.inGameplay ? this.playerPos : VILLAGE_LAYOUT.plaza);
 
     if (this.inGameplay) {
       this._updatePlayerPhysics(dt);
