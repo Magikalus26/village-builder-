@@ -346,6 +346,32 @@ export function generateBuildingSlots(cfg) {
   return slots;
 }
 
+// Géométrie de brique/dalle chanfreinée (ExtrudeGeometry biseautée, normalisée 1x1x1)
+// pour que chaque arête de brique capte nettement la lumière du soleil
+function createBeveledBrickGeometry() {
+  const b = 0.045;
+  const hw = 0.5 - b;
+  const hh = 0.5 - b;
+  const shape = new THREE.Shape();
+  shape.moveTo(-hw, -hh);
+  shape.lineTo(hw, -hh);
+  shape.lineTo(hw, hh);
+  shape.lineTo(-hw, hh);
+  shape.closePath();
+
+  const geo = new THREE.ExtrudeGeometry(shape, {
+    depth: 1.0 - b * 2,
+    bevelEnabled: true,
+    bevelThickness: b,
+    bevelSize: b,
+    bevelSegments: 1,
+    steps: 1,
+  });
+  geo.center();
+  geo.computeVertexNormals();
+  return geo;
+}
+
 export class BuildingSystem {
   constructor(scene, textures, audio, onBuildingProgress, onBuildingComplete) {
     this.scene = scene;
@@ -356,8 +382,8 @@ export class BuildingSystem {
 
     this.buildings = [];
     this.activeBuilding = null;
-    this.snappedTarget = null; // { building, slotIdx, worldPos, worldQuat, slot }
-    this.masonAssistIds = new Set(); // Bâtiments avec "Compagnons Maçons" activés dans le Codex
+    this.snappedTarget = null;
+    this.masonAssistIds = new Set();
 
     this.dustPuffs = [];
     this._raycaster = new THREE.Raycaster();
@@ -365,12 +391,13 @@ export class BuildingSystem {
     this._dummy = new THREE.Object3D();
     this._color = new THREE.Color();
 
-    // Géométrie unitaire partagée par tous les InstancedMesh de briques (12 triangles !)
-    this.unitBoxGeo = new THREE.BoxGeometry(1, 1, 1);
+    // Géométrie de brique/dalle à arêtes chanfreinées partagée par tous les InstancedMesh
+    this.unitBoxGeo = createBeveledBrickGeometry();
+    this.ghostBoxGeo = new THREE.BoxGeometry(1, 1, 1);
 
     // Brique fantôme aim-snappée (surlignage doré-cyan très lisible)
     this.snapPreviewMesh = new THREE.Mesh(
-      this.unitBoxGeo,
+      this.ghostBoxGeo,
       new THREE.MeshBasicMaterial({
         color: '#46f0ff',
         transparent: true,
@@ -379,7 +406,7 @@ export class BuildingSystem {
       })
     );
     const snapEdges = new THREE.LineSegments(
-      new THREE.EdgesGeometry(this.unitBoxGeo),
+      new THREE.EdgesGeometry(this.ghostBoxGeo),
       new THREE.LineBasicMaterial({ color: '#ffe86b' })
     );
     this.snapPreviewMesh.add(snapEdges);
@@ -393,10 +420,10 @@ export class BuildingSystem {
       opacity: 0.24,
       depthWrite: false,
     });
-    this.ghostMesh = new THREE.InstancedMesh(this.unitBoxGeo, this.ghostMat, MAX_GHOSTS_VISIBLE);
+    this.ghostMesh = new THREE.InstancedMesh(this.ghostBoxGeo, this.ghostMat, MAX_GHOSTS_VISIBLE);
     this.ghostMesh.count = 0;
     this.ghostMesh.frustumCulled = false;
-    this.ghostSlotMap = new Int32Array(MAX_GHOSTS_VISIBLE); // instanceId -> slotIdx
+    this.ghostSlotMap = new Int32Array(MAX_GHOSTS_VISIBLE);
     this.ghostBuildingId = null;
     this.scene.add(this.ghostMesh);
 

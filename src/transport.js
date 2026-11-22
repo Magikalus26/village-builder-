@@ -35,76 +35,152 @@ export class Handcart {
   }
 
   _buildCartMesh() {
-    const woodMat = this.textures.createPBRMaterial('wood', { normalStrength: 1.15 });
-    const darkWood = this.textures.createPBRMaterial('wood', { color: '#6b411e', normalStrength: 1.05 });
-    const ironMat = new THREE.MeshStandardMaterial({ color: '#40454d', metalness: 0.72, roughness: 0.38 });
+    const woodMat = this.textures.createPBRMaterial('wood', { normalStrength: 1.2 });
+    const darkWood = this.textures.createPBRMaterial('wood', { color: '#643c1b', normalStrength: 1.1 });
+    const ironMat = new THREE.MeshStandardMaterial({ color: '#2b2f36', metalness: 0.84, roughness: 0.34 });
 
-    // Fond de caisse
-    const bed = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.1, 1.62), woodMat);
-    bed.position.y = 0.56;
-    bed.castShadow = true;
-    bed.receiveShadow = true;
-    this.group.add(bed);
-
-    // Parois latérales à claire-voie
-    const sideGeo = new THREE.BoxGeometry(0.08, 0.48, 1.62);
-    [-0.56, 0.56].forEach((sx) => {
-      const side = new THREE.Mesh(sideGeo, woodMat);
-      side.position.set(sx, 0.84, 0);
-      side.castShadow = true;
-      this.group.add(side);
+    // 1. Châssis inférieur (2 longerons + 3 traverses)
+    [-0.48, 0.48].forEach((lx) => {
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.09, 1.72), darkWood);
+      rail.position.set(lx, 0.5, 0);
+      rail.castShadow = true;
+      this.group.add(rail);
+    });
+    [-0.68, 0, 0.68].forEach((cz) => {
+      const cross = new THREE.Mesh(new THREE.BoxGeometry(1.16, 0.08, 0.09), darkWood);
+      cross.position.set(0, 0.5, cz);
+      this.group.add(cross);
     });
 
-    const endGeo = new THREE.BoxGeometry(1.18, 0.48, 0.08);
-    [-0.78, 0.78].forEach((ez) => {
-      const end = new THREE.Mesh(endGeo, darkWood);
-      end.position.set(0, 0.84, ez);
-      end.castShadow = true;
-      this.group.add(end);
+    // 2. Plancher à lattes de bois assemblées (6 planches disjointes avec jeu réaliste)
+    for (let i = 0; i < 6; i++) {
+      const plank = new THREE.Mesh(new THREE.BoxGeometry(0.175, 0.045, 1.62), woodMat);
+      plank.position.set(-0.48 + i * 0.192, 0.57, 0);
+      plank.castShadow = true;
+      plank.receiveShadow = true;
+      this.group.add(plank);
+    }
+
+    // 3. Ridelles latérales à lattes espacées + montants d'angle + écharpes obliques
+    [-0.57, 0.57].forEach((sx) => {
+      // 3 lattes horizontales par côté
+      [0.69, 0.84, 0.99].forEach((sy) => {
+        const slat = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.11, 1.64), woodMat);
+        slat.position.set(sx, sy, 0);
+        slat.castShadow = true;
+        this.group.add(slat);
+      });
+      // 3 montants verticaux par côté
+      [-0.76, 0, 0.76].forEach((pz) => {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.56, 0.08), darkWood);
+        post.position.set(sx, 0.8, pz);
+        post.castShadow = true;
+        this.group.add(post);
+      });
     });
 
-    // Brancards (poignées avant vers +Z pour tirer/pousser)
-    const shaftGeo = new THREE.BoxGeometry(0.08, 0.08, 1.25);
-    [-0.44, 0.44].forEach((hx) => {
-      const shaft = new THREE.Mesh(shaftGeo, darkWood);
-      shaft.position.set(hx, 0.66, 1.32);
-      shaft.rotation.x = -0.14;
+    // Parois avant et arrière à lattes + renforts d'angle en fer forgé
+    [-0.79, 0.79].forEach((ez) => {
+      [0.69, 0.84, 0.99].forEach((sy) => {
+        const endSlat = new THREE.Mesh(new THREE.BoxGeometry(1.16, 0.11, 0.055), darkWood);
+        endSlat.position.set(0, sy, ez);
+        endSlat.castShadow = true;
+        this.group.add(endSlat);
+      });
+      // Équerres métalliques sombres aux 4 angles (haut et bas)
+      [-0.58, 0.58].forEach((cx) => {
+        [0.64, 1.0].forEach((cy) => {
+          const brkX = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.055, 0.075), ironMat);
+          brkX.position.set(cx > 0 ? cx - 0.05 : cx + 0.05, cy, ez);
+          const brkZ = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.055, 0.14), ironMat);
+          brkZ.position.set(cx, cy, ez > 0 ? ez - 0.05 : ez + 0.05);
+          this.group.add(brkX, brkZ);
+        });
+      });
+    });
+
+    // Béquilles de soutien avant en bois
+    [-0.45, 0.45].forEach((kx) => {
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.44, 0.065), darkWood);
+      leg.position.set(kx, 0.26, 0.65);
+      leg.rotation.x = 0.12;
+      leg.castShadow = true;
+      this.group.add(leg);
+    });
+
+    // 4. Brancards courbés organiques en TubeGeometry + viroles en fer
+    [-0.45, 0.45].forEach((hx) => {
+      const curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(hx, 0.52, 0.65),
+        new THREE.Vector3(hx * 0.96, 0.58, 1.15),
+        new THREE.Vector3(hx * 0.9, 0.72, 1.62),
+        new THREE.Vector3(hx * 0.88, 0.77, 1.98),
+      ]);
+      const shaft = new THREE.Mesh(new THREE.TubeGeometry(curve, 12, 0.042, 7, false), darkWood);
       shaft.castShadow = true;
       this.group.add(shaft);
+
+      // Virole métallique au bout de la poignée
+      const ferrule = new THREE.Mesh(new THREE.CylinderGeometry(0.046, 0.046, 0.09, 8), ironMat);
+      ferrule.rotation.x = Math.PI / 2;
+      ferrule.position.set(hx * 0.88, 0.77, 1.94);
+      this.group.add(ferrule);
     });
-    const crossbar = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.07, 0.07), darkWood);
-    crossbar.position.set(0, 0.75, 1.88);
+    const crossbar = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.86, 8), darkWood);
+    crossbar.rotation.z = Math.PI / 2;
+    crossbar.position.set(0, 0.73, 1.72);
     this.group.add(crossbar);
 
-    // Essieu métallique
-    const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 1.56, 8), ironMat);
+    // Essieu métallique renforcé + paliers sous longerons
+    const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.042, 1.64, 10), ironMat);
     axle.rotation.z = Math.PI / 2;
-    axle.position.set(0, 0.44, -0.08);
+    axle.position.set(0, 0.44, -0.06);
     this.group.add(axle);
 
-    // Deux grandes roues à rayons médiévales
+    // 5. Vraies roues artisanales à 8 rayons + moyeu tourné + cerclage en fer sombre + rivets
     const buildWheel = () => {
       const w = new THREE.Group();
-      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.05, 8, 16), darkWood);
+      // Jante en bois épais
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.41, 0.046, 8, 20), darkWood);
       rim.rotation.y = Math.PI / 2;
       rim.castShadow = true;
       w.add(rim);
-      const tire = new THREE.Mesh(new THREE.TorusGeometry(0.455, 0.018, 6, 16), ironMat);
+
+      // Cerclage extérieur en fer sombre forgé
+      const tire = new THREE.Mesh(new THREE.TorusGeometry(0.452, 0.018, 6, 20), ironMat);
       tire.rotation.y = Math.PI / 2;
       w.add(tire);
-      const spokeGeo = new THREE.BoxGeometry(0.035, 0.8, 0.045);
-      for (let i = 0; i < 4; i++) {
+
+      // Moyeu central en chêne + chapeau de moyeu en fer
+      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.095, 0.16, 10), woodMat);
+      hub.rotation.z = Math.PI / 2;
+      w.add(hub);
+      const hubCap = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.062, 0.19, 8), ironMat);
+      hubCap.rotation.z = Math.PI / 2;
+      w.add(hubCap);
+
+      // 8 rayons radiaux distincts + clous/rivets sur la jante
+      const spokeGeo = new THREE.CylinderGeometry(0.018, 0.024, 0.36, 6);
+      spokeGeo.translate(0, 0.21, 0);
+      const rivetGeo = new THREE.BoxGeometry(0.03, 0.025, 0.025);
+      for (let i = 0; i < 8; i++) {
+        const ang = (i / 8) * Math.PI * 2;
         const sp = new THREE.Mesh(spokeGeo, woodMat);
-        sp.rotation.x = (i * Math.PI) / 4;
+        sp.rotation.x = ang;
+        sp.castShadow = true;
         w.add(sp);
+
+        const riv = new THREE.Mesh(rivetGeo, ironMat);
+        riv.position.set(0, Math.cos(ang) * 0.46, Math.sin(ang) * 0.46);
+        w.add(riv);
       }
       return w;
     };
 
     this.wheelLeft = buildWheel();
-    this.wheelLeft.position.set(-0.72, 0.44, -0.08);
+    this.wheelLeft.position.set(-0.74, 0.44, -0.06);
     this.wheelRight = buildWheel();
-    this.wheelRight.position.set(0.72, 0.44, -0.08);
+    this.wheelRight.position.set(0.74, 0.44, -0.06);
     this.group.add(this.wheelLeft, this.wheelRight);
 
     // Groupe contenant les matériaux réellement empilés dans la caisse

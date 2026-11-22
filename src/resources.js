@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import {
   VILLAGE_LAYOUT,
+  buildFracturedRockGeometry,
   buildSculptedOakGeometries,
   buildSculptedPineGeometries,
 } from './world.js';
@@ -14,19 +15,29 @@ export class ResourceSystem {
     this.textures = textures;
     this.audio = audio;
 
-    this.nodes = [];         // Roches de carrière & arbres exploitables
-    this.ragdolls = [];      // Blocs / rondins physiques libres au sol
-    this.chips = [];         // Particules d'impact
+    this.nodes = [];
+    this.ragdolls = [];
+    this.chips = [];
 
-    this.stoneMat = textures.createPBRMaterial('stone', { color: '#cccfd4', normalStrength: 1.25 });
-    this.darkStoneMat = textures.createPBRMaterial('stone', { color: '#a5aab0', normalStrength: 1.3 });
-    this.barkMat = textures.createPBRMaterial('wood', { color: '#784c28', normalStrength: 1.15 });
-    this.logEndMat = new THREE.MeshStandardMaterial({ color: '#d9b382', roughness: 0.82 });
-    this.treeBarkMat = new THREE.MeshStandardMaterial({
-      map: textures.wood,
-      normalMap: textures.sets.wood.normalMap,
-      normalScale: new THREE.Vector2(1.1, 1.1),
+    this.stoneMat = textures.createPBRMaterial('rock', {
+      color: '#d4d1c8',
+      normalStrength: 1.35,
+      roughness: 0.86,
+      vertexColors: true,
+      flatShading: true,
+    });
+    this.darkStoneMat = textures.createPBRMaterial('rock', {
+      color: '#aba8a0',
+      normalStrength: 1.4,
       roughness: 0.9,
+      vertexColors: true,
+      flatShading: true,
+    });
+    this.barkMat = textures.createPBRMaterial('bark', { color: '#8a5932', normalStrength: 1.3 });
+    this.logEndMat = new THREE.MeshStandardMaterial({ color: '#dfb886', roughness: 0.82 });
+    this.treeBarkMat = textures.createPBRMaterial('bark', {
+      normalStrength: 1.35,
+      roughness: 0.92,
       vertexColors: true,
     });
     this.canopyMat = new THREE.MeshStandardMaterial({
@@ -34,6 +45,8 @@ export class ResourceSystem {
       roughness: 0.84,
       metalness: 0.0,
     });
+
+    this.ragdollRockGeo = buildFracturedRockGeometry(17, 0.34, false);
 
     this._spawnQuarryNodes();
     this._spawnForestNodes();
@@ -47,20 +60,27 @@ export class ResourceSystem {
       [-0.5, -7.2, 1.2], [-7.6, -1.8, 1.15], [1.2, -3.2, 0.95], [8.5, 5.2, 1.35],
     ];
 
-    const rockGeo = new THREE.DodecahedronGeometry(1.35, 1);
+    const rockVariants = [
+      buildFracturedRockGeometry(3, 1.35, true),
+      buildFracturedRockGeometry(8, 1.35, true),
+      buildFracturedRockGeometry(14, 1.35, true),
+    ];
+
     offsets.forEach(([ox, oz, scale], idx) => {
       const grp = new THREE.Group();
-      const mesh = new THREE.Mesh(rockGeo, idx % 2 === 0 ? this.stoneMat : this.darkStoneMat);
-      mesh.scale.set(scale * 1.15, scale * 0.85, scale);
-      mesh.position.y = scale * 0.65;
-      mesh.rotation.set(idx * 0.5, idx * 1.1, idx * 0.3);
+      const geo = rockVariants[idx % rockVariants.length];
+      const mesh = new THREE.Mesh(geo, idx % 2 === 0 ? this.stoneMat : this.darkStoneMat);
+      mesh.scale.set(scale * 1.18, scale * 0.86, scale);
+      mesh.position.y = scale * 0.56;
+      mesh.rotation.set(0, idx * 1.15, 0);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       grp.add(mesh);
 
-      const sub = new THREE.Mesh(rockGeo, this.darkStoneMat);
-      sub.scale.setScalar(scale * 0.52);
-      sub.position.set(scale * 0.75, scale * 0.35, scale * 0.3);
+      const sub = new THREE.Mesh(rockVariants[(idx + 1) % rockVariants.length], this.darkStoneMat);
+      sub.scale.setScalar(scale * 0.54);
+      sub.position.set(scale * 0.78, scale * 0.32, scale * 0.35);
+      sub.rotation.y = idx * 2.1;
       sub.castShadow = true;
       grp.add(sub);
 
@@ -127,7 +147,6 @@ export class ResourceSystem {
     });
   }
 
-  // Trouve la roche ou l'arbre ciblé devant le joueur
   findTargetNode(playerPos, lookDir, maxDist = 4.6) {
     let best = null;
     let bestScore = Infinity;
@@ -150,26 +169,20 @@ export class ResourceSystem {
     return best;
   }
 
-  // Frappe un nœud : retour sonore/visuel + détachement physique ragdoll immédiat
   hitNode(node, hitOrigin) {
     if (!node || !node.active) return false;
 
     node.hp -= 1;
     node.shakeTimer = 0.28;
 
-    if (node.type === 'stone') {
-      this.audio.playPickaxeStone();
-    } else {
-      this.audio.playChopWood();
-    }
+    if (node.type === 'stone') this.audio.playPickaxeStone();
+    else this.audio.playChopWood();
     if (navigator.vibrate) {
       try { navigator.vibrate(18); } catch (_) {}
     }
 
-    // Particules d'impact immédiates
     this._spawnHitChips(node.group.position, node.type);
 
-    // Chaque coup détache 1 bloc/rondin ragdoll ; la destruction finale en projette 2 de plus !
     const ejectDir = new THREE.Vector3(
       node.group.position.x - hitOrigin.x,
       0,
@@ -186,7 +199,7 @@ export class ResourceSystem {
     if (node.hp <= 0) {
       node.active = false;
       node.group.visible = false;
-      node.respawnTimer = 26; // Repousse / nouvelle veine après 26 s
+      node.respawnTimer = 26;
     }
     return true;
   }
@@ -195,10 +208,9 @@ export class ResourceSystem {
     let mesh;
     let halfH;
     if (type === 'stone') {
-      const geo = new THREE.DodecahedronGeometry(0.32, 0);
-      mesh = new THREE.Mesh(geo, this.stoneMat);
-      mesh.scale.set(1.2, 0.78, 0.95);
-      halfH = 0.25;
+      mesh = new THREE.Mesh(this.ragdollRockGeo, this.stoneMat);
+      mesh.scale.set(1.15, 0.78, 0.96);
+      halfH = 0.24;
     } else {
       const geo = new THREE.CylinderGeometry(0.16, 0.17, 0.92, 7);
       geo.rotateZ(Math.PI / 2);
