@@ -201,7 +201,7 @@ export class Handcart {
   }
 
   getMaxCapacity() {
-    return 240;
+    return 240 + (this.bonusCapacity || 0);
   }
 
   canAcceptOne() {

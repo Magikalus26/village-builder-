@@ -29,6 +29,20 @@ class VillageBuilderGame {
       wood: 6,
     };
 
+    // Statistiques réelles de jeu connectées à l'arbre FTB Quests (persistées dans localStorage)
+    this.stats = {
+      stoneExtracted: 0,
+      woodExtracted: 0,
+      slabsCut: 0,
+      bricksCut: 0,
+      beamsCut: 0,
+      totalSawCuts: 0,
+      cartGrabbed: 0,
+      cartLoadedItems: 0,
+      cartCapacityBonus: 0,
+      sawYieldBonus: 0,
+    };
+
     // Physique joueur en vue subjective
     this.playerPos = new THREE.Vector3(VILLAGE_LAYOUT.spawn.x, 0, VILLAGE_LAYOUT.spawn.z);
     this.playerVelY = 0;
@@ -97,13 +111,14 @@ class VillageBuilderGame {
       this.audio,
       (b) => {
         this.interiors.syncWithBuilding(b);
+        this.codex?.refreshBadgesAndPin();
         this._refreshHUD();
         this._scheduleSave();
       },
       (b) => {
         this.interiors.syncWithBuilding(b);
-        this.codex.notifyDot?.classList.remove('hidden');
-        this.codex._syncTrackedBeacon();
+        this.codex?._syncTrackedBeacon();
+        this.codex?.refreshBadgesAndPin();
         this._refreshHUD();
         this._saveNow();
       }
@@ -122,7 +137,8 @@ class VillageBuilderGame {
       },
       onCartToggle: () => {
         if (this.handcart.toggleAttach(this.playerPos)) {
-          this.codex.markMilestone('carted');
+          this.stats.cartGrabbed += 1;
+          this.codex.refreshBadgesAndPin();
           this._refreshHUD();
           this._scheduleSave();
         }
@@ -130,7 +146,8 @@ class VillageBuilderGame {
       onCartLoad: () => {
         const loaded = this.handcart.loadFromZoneOrInventory(this.playerPos, this.inventory);
         if (loaded > 0) {
-          this.codex.markMilestone('carted');
+          this.stats.cartLoadedItems += loaded;
+          this.codex.refreshBadgesAndPin();
           this._refreshHUD();
           this._scheduleSave();
         }
@@ -147,10 +164,25 @@ class VillageBuilderGame {
       },
       getInventory: () => this.inventory,
       getCartCargo: () => this.handcart.cargo,
+      getStats: () => this.stats,
+      onGrantRewards: (rewards) => {
+        for (const r of rewards) {
+          if (r.kind === 'inventory' && r.key) {
+            this.inventory[r.key] = (this.inventory[r.key] || 0) + (r.amount || 0);
+          } else if (r.kind === 'upgrade_cart') {
+            this.stats.cartCapacityBonus += (r.amount || 0);
+            this.handcart.bonusCapacity = this.stats.cartCapacityBonus;
+          } else if (r.kind === 'upgrade_saw') {
+            this.stats.sawYieldBonus += (r.amount || 0);
+          }
+        }
+        this._refreshHUD();
+        this._saveNow();
+      },
+      onStateChanged: () => this._scheduleSave(),
       onTeleportToBuilding: (id) => {
         const b = this.building.getBuildingById(id);
         if (!b) return;
-        // Place le joueur juste devant la porte du bâtiment choisi
         const offset = new THREE.Vector3(0, 0, b.cfg.depth * 0.5 + 3.2);
         if (b.cfg.doorSide === 'north') offset.set(0, 0, -(b.cfg.depth * 0.5 + 3.2));
         if (b.cfg.doorSide === 'west') offset.set(-(b.cfg.width * 0.5 + 3.2), 0, 0);
@@ -261,9 +293,13 @@ class VillageBuilderGame {
     document.getElementById('btn-wb-cut').addEventListener('pointerdown', (e) => {
       e.preventDefault();
       this.audio.unlock();
-      const res = this.workbench.triggerCut(this.inventory, this.handcart);
+      const res = this.workbench.triggerCut(this.inventory, this.handcart, this.stats.sawYieldBonus);
       if (res.ok) {
-        this.codex.markMilestone('sawed');
+        this.stats.totalSawCuts += 1;
+        if (res.recipe.outputKey === 'slabs') this.stats.slabsCut += res.produced;
+        else if (res.recipe.outputKey === 'bricks') this.stats.bricksCut += res.produced;
+        else if (res.recipe.outputKey === 'beams') this.stats.beamsCut += res.produced;
+        this.codex.refreshBadgesAndPin();
         this._refreshWorkbenchUI();
         this._refreshHUD();
         this._scheduleSave();
@@ -537,6 +573,9 @@ class VillageBuilderGame {
         if (!toCart) {
           this.inventory[type] = (this.inventory[type] || 0) + amount;
         }
+        if (type === 'stone') this.stats.stoneExtracted += Math.max(1, amount);
+        else if (type === 'wood') this.stats.woodExtracted += Math.max(1, amount);
+        this.codex.refreshBadgesAndPin();
         this._refreshHUD();
         this._scheduleSave();
       });
@@ -595,8 +634,9 @@ class VillageBuilderGame {
   _saveNow() {
     try {
       const payload = {
-        v: 1,
+        v: 2,
         inventory: { ...this.inventory },
+        stats: { ...this.stats },
         player: {
           x: this.playerPos.x,
           z: this.playerPos.z,
@@ -617,6 +657,10 @@ class VillageBuilderGame {
     const data = this._readSaveRaw();
     if (!data) return;
     if (data.inventory) Object.assign(this.inventory, data.inventory);
+    if (data.stats) {
+      Object.assign(this.stats, data.stats);
+      this.handcart.bonusCapacity = this.stats.cartCapacityBonus || 0;
+    }
     if (data.player) {
       this.playerPos.set(data.player.x || 4, 0, data.player.z || 13);
       this.controls.yaw = data.player.yaw ?? VILLAGE_LAYOUT.spawn.yaw;

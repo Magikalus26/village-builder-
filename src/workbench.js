@@ -319,7 +319,7 @@ export class WorkbenchStation {
     this.workpieceRight.position.set(0.21, 1.13, 0.05);
   }
 
-  triggerCut(inventory, handcart) {
+  triggerCut(inventory, handcart, yieldBonus = 0) {
     const recipe = WORKBENCH_RECIPES[this.selectedRecipe];
     if (!recipe) return { ok: false };
 
@@ -339,14 +339,15 @@ export class WorkbenchStation {
 
     if (!consumed) return { ok: false, missing: recipe.inputKey };
 
-    inventory[recipe.outputKey] = (inventory[recipe.outputKey] || 0) + recipe.outputCount;
+    const produced = recipe.outputCount + Math.max(0, Math.floor(yieldBonus || 0));
+    inventory[recipe.outputKey] = (inventory[recipe.outputKey] || 0) + produced;
     this.cutAnim = 1.0;
     this.audio.playSawCut();
     if (navigator.vibrate) {
       try { navigator.vibrate([15, 30, 20]); } catch (_) {}
     }
     this._spawnSawdust(recipe.inputKey === 'wood' ? '#e3bd7d' : '#dfe3e8');
-    return { ok: true, recipe };
+    return { ok: true, recipe, produced };
   }
 
   _spawnSawdust(hexColor) {

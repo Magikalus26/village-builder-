@@ -122,17 +122,24 @@
       </div>
     </div>
 
-    <!-- Haut droite : Avancement chantier actif (icône + chiffre) & Codex -->
+    <!-- Haut droite : Chantier actif & bouton Quest Book -->
     <div class="hud-top-right">
       <div id="hud-site-ring" class="site-progress-pill hidden" aria-label="Chantier actif">
         <span class="site-ring-icon" id="hud-site-icon">⛪</span>
         <span class="site-ring-count" id="hud-site-count">0/12000</span>
       </div>
 
-      <button id="btn-hud-codex" class="hud-codex-btn" type="button" aria-label="Codex de l'Architecte">
+      <button id="btn-hud-codex" class="hud-codex-btn" type="button" aria-label="Quest Book de l'Architecte">
         <span class="codex-icon">📖</span>
-        <span id="codex-dot" class="notify-dot hidden"></span>
+        <span id="codex-dot" class="notify-badge hidden">!</span>
       </button>
+    </div>
+
+    <!-- Mini-suivi discret de la quête épinglée (FTB Pin) juste sous le bouton Quest Book -->
+    <div id="hud-pinned-quest" class="pinned-quest-pill hidden" aria-label="Quête épinglée">
+      <span class="pin-mark">📌</span>
+      <span id="hud-pin-title" class="pin-title"></span>
+      <span id="hud-pin-progress" class="pin-prog"></span>
     </div>
 
     <!-- Réticule diégétique central (s'illumine quand aim-snappé) -->
@@ -144,7 +151,7 @@
     <!-- Badge icône discret lorsque la charrette est accrochée -->
     <div id="hud-cart-badge" class="cart-attached-pill hidden" aria-label="Charrette">
       <span>🛞</span>
-      <span id="hud-cart-count">0/48</span>
+      <span id="hud-cart-count">0/240</span>
     </div>
 
     <!-- Zone Tactile Gauche : Joystick virtuel fluide -->
@@ -159,22 +166,18 @@
 
     <!-- Arc ergonomique pouce droit : boutons d'action contextuels (icônes) -->
     <div class="action-cluster">
-      <!-- Bouton secondaire : Charrette (saisir / charger / détacher) -->
       <button id="btn-act-cart" class="act-btn act-secondary hidden" type="button" aria-label="Charrette">
         <span id="btn-act-cart-ico" class="act-ico">🛞</span>
       </button>
 
-      <!-- Bouton secondaire : Charger stock <-> charrette -->
       <button id="btn-act-load" class="act-btn act-secondary hidden" type="button" aria-label="Charger">
         <span id="btn-act-load-ico" class="act-ico">📦</span>
       </button>
 
-      <!-- Bouton secondaire : Sauter -->
       <button id="btn-act-jump" class="act-btn act-small" type="button" aria-label="Sauter">
         <span class="act-ico">⇪</span>
       </button>
 
-      <!-- Bouton principal contextuel : Poser brique / Frapper / Scier / Ouvrir porte -->
       <button id="btn-act-primary" class="act-btn act-primary" type="button" aria-label="Action">
         <span id="btn-act-primary-ico" class="act-ico-lg">⚒</span>
       </button>
@@ -223,48 +226,99 @@
   </section>
 
   <!-- ===================================================================== -->
-  <!-- CODEX DE L'ARCHITECTE — STYLE "NEO ADVENTURE"                         -->
+  <!-- QUEST BOOK MÉDIÉVAL — STYLE FTB QUESTS (PAN & ZOOM + TIROIR MOBILE)   -->
   <!-- ===================================================================== -->
-  <section id="codex-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Codex de l'Architecte">
-    <div class="codex-book">
-      <div class="codex-spine" aria-hidden="true"></div>
-
-      <header class="codex-header">
-        <div class="codex-title-wrap">
-          <span class="codex-emblem">⚜</span>
-          <div>
-            <h2>Codex de l'Architecte</h2>
-            <p id="codex-total-summary" class="codex-sub">0 / 36 800 briques posées</p>
+  <section id="codex-modal" class="ftb-overlay hidden" role="dialog" aria-modal="true" aria-label="Quest Book de l'Architecte">
+    <div class="ftb-shell">
+      <!-- Barre supérieure FTB Quests -->
+      <header class="ftb-topbar">
+        <div class="ftb-top-left">
+          <button id="btn-ftb-drawer" class="ftb-icon-btn" type="button" aria-label="Chapitres">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+            <span id="ftb-drawer-badge" class="ftb-alert-dot hidden">!</span>
+          </button>
+          <div class="ftb-chapter-head">
+            <span id="ftb-chapter-cat" class="ftb-chapter-cat">PAROISSE MÉDIÉVALE</span>
+            <h2 id="ftb-chapter-title" class="ftb-chapter-title">Départ &amp; Outils</h2>
           </div>
         </div>
-        <button id="btn-codex-close" class="codex-close" type="button" aria-label="Fermer">✕</button>
+
+        <div class="ftb-top-right">
+          <span id="ftb-global-counter" class="ftb-counter-chip">0/24</span>
+          <button id="btn-codex-close" class="ftb-icon-btn ftb-close-btn" type="button" aria-label="Fermer">✕</button>
+        </div>
       </header>
 
-      <nav class="codex-tabs" role="tablist">
-        <button class="codex-tab active" data-tab="quests" role="tab" type="button">📜 Chantiers</button>
-        <button class="codex-tab" data-tab="plan" role="tab" type="button">🗺 Plan</button>
-        <button class="codex-tab" data-tab="stock" role="tab" type="button">📦 Réserves</button>
-      </nav>
+      <!-- Corps principal : Tiroir gauche rétractable + Canevas interactif d'arbre de quêtes -->
+      <div class="ftb-workspace">
+        <!-- Panneau latéral gauche rétractable (Chapitres) -->
+        <aside id="ftb-sidebar" class="ftb-sidebar collapsed" aria-label="Liste des chapitres">
+          <div class="ftb-sidebar-inner" id="ftb-chapter-list"></div>
+        </aside>
+        <div id="ftb-drawer-scrim" class="ftb-drawer-scrim hidden" aria-hidden="true"></div>
 
-      <div id="codex-body" class="codex-body">
-        <!-- Onglet 1 : Quêtes & Chantiers -->
-        <div id="codex-tab-quests" class="codex-panel"></div>
-
-        <!-- Onglet 2 : Plan officiel du village (IMG_0581 / assets/plan.jpg) -->
-        <div id="codex-tab-plan" class="codex-panel hidden">
-          <div class="codex-plan-frame">
-            <img src="./assets/plan.jpg" alt="Plan architectural du village" class="codex-plan-img" />
+        <!-- Canevas interactif d'arbre de quêtes (Pan & Pinch-Zoom) -->
+        <div id="ftb-canvas-viewport" class="ftb-viewport">
+          <div id="ftb-stage" class="ftb-stage">
+            <div id="ftb-groups-layer" class="ftb-groups-layer"></div>
+            <svg id="ftb-links-layer" class="ftb-links-layer" aria-hidden="true"></svg>
+            <div id="ftb-nodes-layer" class="ftb-nodes-layer"></div>
           </div>
-          <div class="codex-legend-grid">
-            <div class="legend-chip">⛪ Petite Église — 12 000</div>
-            <div class="legend-chip">🏛 Mairie — 8 500</div>
-            <div class="legend-chip">🏡 5 Maisons — 2 500 à 4 500</div>
-            <div class="legend-chip">⛏ Carrière (Est) & Forêt (Ouest)</div>
+
+          <!-- Contrôles de zoom discrets en bas à droite du canevas -->
+          <div class="ftb-zoom-controls">
+            <button id="btn-ftb-zoom-in" class="ftb-zoom-btn" type="button" aria-label="Zoomer">+</button>
+            <button id="btn-ftb-zoom-reset" class="ftb-zoom-btn" type="button" aria-label="Centrer">⌖</button>
+            <button id="btn-ftb-zoom-out" class="ftb-zoom-btn" type="button" aria-label="Dézoomer">−</button>
           </div>
         </div>
 
-        <!-- Onglet 3 : Réserves, Charrette & Aide -->
-        <div id="codex-tab-stock" class="codex-panel hidden"></div>
+        <!-- Vue Encyclopédie / Plans & Volumes (pour les 2 chapitres d'Encyclopédie) -->
+        <div id="ftb-encyclopedia-view" class="ftb-encyclopedia hidden"></div>
+      </div>
+
+      <!-- Fiche détail parchemin d'une quête (au tap sur un nœud) -->
+      <div id="ftb-detail-backdrop" class="ftb-detail-backdrop hidden" role="dialog" aria-modal="true" aria-label="Détail de la quête">
+        <article class="ftb-detail-card">
+          <header class="ftb-detail-header">
+            <div class="ftb-detail-head-left">
+              <div id="ftb-detail-icon" class="ftb-detail-icon"></div>
+              <div>
+                <span id="ftb-detail-badge-state" class="ftb-state-tag">EN COURS</span>
+                <h3 id="ftb-detail-title"></h3>
+              </div>
+            </div>
+            <div class="ftb-detail-head-actions">
+              <button id="btn-ftb-pin" class="ftb-pin-btn" type="button" title="Épingler sur l'écran" aria-label="Épingler sur l'écran">📌</button>
+              <button id="btn-ftb-detail-close" class="ftb-detail-close" type="button" aria-label="Fermer la fiche">✕</button>
+            </div>
+          </header>
+
+          <div class="ftb-detail-body">
+            <p id="ftb-detail-desc" class="ftb-detail-desc"></p>
+
+            <div class="ftb-detail-section">
+              <div class="ftb-sec-label">OBJECTIFS REQUIS</div>
+              <div id="ftb-detail-objectives" class="ftb-obj-list"></div>
+            </div>
+
+            <div class="ftb-detail-section">
+              <div class="ftb-sec-label">RÉCOMPENSES</div>
+              <div id="ftb-detail-rewards" class="ftb-reward-list"></div>
+            </div>
+
+            <div id="ftb-detail-building-actions" class="ftb-bldg-actions hidden"></div>
+
+            <button id="btn-ftb-claim" class="ftb-claim-btn hidden" type="button">
+              <span>✨ RÉCLAMER LA RÉCOMPENSE</span>
+            </button>
+            <div id="ftb-claimed-banner" class="ftb-claimed-banner hidden">✓ Récompense déjà réclamée</div>
+          </div>
+        </article>
       </div>
     </div>
   </section>

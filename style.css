@@ -376,16 +376,54 @@ html, body {
   transform: scale(0.93);
 }
 
-.notify-dot {
+.notify-badge {
   position: absolute;
-  top: -3px;
-  right: -3px;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: #ffda3d;
-  border: 2px solid #4a2810;
-  box-shadow: 0 0 8px #ffda3d;
+  top: -5px;
+  right: -5px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff4b4b, #c71f1f);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 17px;
+  text-align: center;
+  border: 1.5px solid #ffe4d6;
+  box-shadow: 0 0 10px rgba(255, 65, 65, 0.85);
+}
+
+.pinned-quest-pill {
+  position: absolute;
+  top: calc(var(--safe-top) + 66px);
+  right: calc(var(--safe-right) + 10px);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(34, 24, 18, 0.88);
+  border: 1.5px solid #f0b83a;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fff4d6;
+  max-width: 190px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+}
+
+.pinned-quest-pill .pin-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pinned-quest-pill .pin-prog {
+  color: #ffe259;
+  flex-shrink: 0;
 }
 
 .res-strip {
@@ -713,7 +751,7 @@ html, body {
 }
 
 /* ==========================================================================
-   CODEX DE L'ARCHITECTE — STYLE "NEO ADVENTURE"
+   QUEST BOOK MÉDIÉVAL — STYLE FTB QUESTS (iPhone 16e 390x844 Portrait Ready)
    ========================================================================== */
 
 .modal-overlay {
@@ -729,184 +767,841 @@ html, body {
   padding: calc(var(--safe-top) + 12px) calc(var(--safe-right) + 12px) calc(var(--safe-bottom) + 12px) calc(var(--safe-left) + 12px);
 }
 
-.codex-book {
-  position: relative;
-  width: 100%;
-  max-width: 560px;
-  max-height: 88dvh;
+.ftb-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: #17181d;
   display: flex;
   flex-direction: column;
-  border-radius: 20px;
-  background: linear-gradient(180deg, var(--parchment-light) 0%, var(--parchment-mid) 100%);
-  color: var(--ink);
-  border: 4px solid #5c361a;
-  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.65), inset 0 0 0 2px #d4a459;
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
+
+.ftb-shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
+  background: #1b1d24;
+  color: #f3ead6;
 }
 
-.codex-spine {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 10px;
-  background: linear-gradient(90deg, #3e2210, #7d4a23 70%, transparent);
-  pointer-events: none;
-}
-
-.codex-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px 10px 20px;
-  background: linear-gradient(180deg, #6d4224, #4c2c16);
-  color: #fff6e0;
-  border-bottom: 3px solid #d4a459;
-}
-
-.codex-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.codex-emblem {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #ffe259, #d9820b);
-  color: #3a1f0a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  font-weight: 900;
-}
-
-.codex-header h2 {
-  margin: 0;
-  font-size: 1.12rem;
-  letter-spacing: 0.03em;
-}
-
-.codex-sub {
-  margin: 2px 0 0;
-  font-size: 0.78rem;
-  color: #f6d59c;
-  font-weight: 700;
-}
-
-.codex-close {
-  appearance: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 2px solid #d4a459;
-  background: #3a2314;
-  color: #fff6e0;
-  font-size: 1.1rem;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.codex-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  padding: 10px 14px 8px 18px;
-  background: rgba(139, 90, 43, 0.16);
-  border-bottom: 1.5px solid rgba(139, 90, 43, 0.35);
-}
-
-.codex-tab {
-  appearance: none;
-  border: 1.5px solid var(--parchment-border);
-  background: rgba(255, 248, 232, 0.75);
-  color: var(--ink);
-  border-radius: 10px;
-  padding: 8px 6px;
-  font-weight: 800;
-  font-size: 0.82rem;
-  cursor: pointer;
-}
-
-.codex-tab.active {
-  background: linear-gradient(180deg, #8b552a, #5c3416);
-  color: #fff6dc;
-  border-color: #d4a459;
-}
-
-.codex-body {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 12px 14px 16px 18px;
-}
-
-.quest-card {
-  background: rgba(255, 250, 238, 0.82);
-  border: 2px solid #b5834b;
-  border-radius: 14px;
-  padding: 11px 12px;
-  margin-bottom: 10px;
-  box-shadow: 0 3px 8px rgba(70, 42, 18, 0.12);
-}
-
-.quest-card.completed {
-  border-color: #3aa832;
-  background: rgba(235, 252, 230, 0.9);
-}
-
-.quest-card.tracked {
-  border-color: #d9820b;
-  box-shadow: 0 0 0 2px rgba(245, 155, 18, 0.35);
-}
-
-.quest-top {
+/* Barre supérieure FTB Quests médiévale */
+.ftb-topbar {
+  flex: 0 0 auto;
+  height: 56px;
+  padding: 0 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  background: linear-gradient(180deg, #3a2617 0%, #24170e 100%);
+  border-bottom: 2px solid #a6783d;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  z-index: 15;
 }
 
-.quest-name {
-  font-weight: 900;
-  font-size: 0.95rem;
+.ftb-top-left, .ftb-top-right {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
+  min-width: 0;
 }
 
-.quest-count {
-  font-size: 0.82rem;
+.ftb-icon-btn {
+  position: relative;
+  appearance: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1.5px solid #c99953;
+  background: linear-gradient(180deg, #5c3a20, #382212);
+  color: #fff4da;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  font-weight: 900;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ftb-icon-btn:active { transform: scale(0.93); }
+
+.ftb-alert-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ff4747, #c21818);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 15px;
+  text-align: center;
+  border: 1.5px solid #ffdede;
+  box-shadow: 0 0 8px rgba(255, 60, 60, 0.8);
+}
+
+.ftb-chapter-head {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ftb-chapter-cat {
+  font-size: 0.62rem;
   font-weight: 800;
-  color: #6d4224;
+  letter-spacing: 0.1em;
+  color: #d9b06c;
+  text-transform: uppercase;
 }
 
-.quest-bar {
-  height: 10px;
+.ftb-chapter-title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 900;
+  color: #fff6e2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ftb-counter-chip {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(18, 12, 8, 0.72);
+  border: 1px solid #9e733b;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #ffe27a;
+}
+
+/* Zone de travail : Tiroir gauche rétractable + Canevas Pan/Zoom */
+.ftb-workspace {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Panneau latéral gauche rétractable (Chapitres) */
+.ftb-sidebar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 264px;
+  max-width: 82vw;
+  background: linear-gradient(180deg, #27211d 0%, #1c1918 100%);
+  border-right: 2px solid #8c6230;
+  box-shadow: 8px 0 28px rgba(0, 0, 0, 0.65);
+  z-index: 20;
+  transform: translateX(0);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.ftb-sidebar.collapsed {
+  transform: translateX(-105%);
+}
+
+/* Sur grand écran / paysage large, panneau latéral ancré ouvert si non replié */
+@media (min-width: 780px) {
+  .ftb-sidebar:not(.collapsed) {
+    position: relative;
+    flex: 0 0 264px;
+    box-shadow: none;
+  }
+}
+
+.ftb-sidebar-inner {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px 8px 18px;
+}
+
+.ftb-drawer-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 8, 6, 0.56);
+  z-index: 18;
+}
+
+.ftb-cat-label {
+  margin: 12px 6px 5px;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  color: #c89d5b;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(200, 157, 91, 0.22);
+  padding-bottom: 3px;
+}
+
+.ftb-cat-label:first-child { margin-top: 2px; }
+
+.ftb-chap-btn {
+  appearance: none;
+  width: 100%;
+  border: 1.5px solid transparent;
+  background: rgba(255, 245, 224, 0.03);
+  color: #e9dec7;
+  border-radius: 10px;
+  padding: 9px 10px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ftb-chap-btn.active {
+  background: linear-gradient(90deg, rgba(212, 152, 62, 0.28), rgba(140, 86, 32, 0.16));
+  border-color: #d9a44b;
+  color: #fff8e6;
+}
+
+.ftb-chap-ico {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ftb-chap-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ftb-chap-alert {
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff4747, #c21818);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ffd8d8;
+  box-shadow: 0 0 8px rgba(255, 65, 65, 0.75);
+}
+
+.ftb-chap-done {
+  font-size: 0.76rem;
+  color: #4ce384;
+  font-weight: 900;
+}
+
+/* Canevas interactif d'arbre de quêtes — Fond pierre ardoise / parchemin sombre */
+.ftb-viewport {
+  position: relative;
+  flex: 1 1 auto;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  background-color: #1d2028;
+  background-image:
+    radial-gradient(circle at 50% 42%, rgba(88, 72, 48, 0.24), rgba(18, 20, 26, 0.85) 75%),
+    linear-gradient(rgba(210, 180, 128, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(210, 180, 128, 0.045) 1px, transparent 1px);
+  background-size: 100% 100%, 34px 34px, 34px 34px;
+}
+
+.ftb-viewport:active { cursor: grabbing; }
+
+.ftb-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1200px;
+  height: 1000px;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.ftb-groups-layer, .ftb-links-layer, .ftb-nodes-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.ftb-groups-layer, .ftb-links-layer {
+  pointer-events: none;
+}
+
+/* Encadrés de groupe colorés (cuivre pour les 5 maisons, bleu céleste pour l'Église, or pour la Mairie) */
+.ftb-group-box {
+  position: absolute;
+  border-radius: 16px;
+  border: 2px dashed rgba(220, 175, 100, 0.55);
+  background: rgba(212, 152, 62, 0.07);
+}
+
+.ftb-group-box.theme-copper {
+  border-color: rgba(224, 125, 68, 0.78);
+  background: rgba(214, 105, 48, 0.09);
+  box-shadow: inset 0 0 26px rgba(214, 105, 48, 0.12);
+}
+
+.ftb-group-box.theme-celestial {
+  border-color: rgba(84, 204, 255, 0.82);
+  background: rgba(58, 178, 240, 0.09);
+  box-shadow: inset 0 0 30px rgba(72, 198, 255, 0.16);
+}
+
+.ftb-group-box.theme-gold {
+  border-color: rgba(245, 196, 70, 0.8);
+  background: rgba(240, 184, 52, 0.09);
+  box-shadow: inset 0 0 26px rgba(240, 184, 52, 0.14);
+}
+
+.ftb-group-title {
+  position: absolute;
+  top: -11px;
+  left: 14px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #221f24;
+  border: 1.5px solid currentColor;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.theme-copper .ftb-group-title { color: #f59c64; }
+.theme-celestial .ftb-group-title { color: #78dcff; }
+.theme-gold .ftb-group-title { color: #ffd966; }
+
+/* Lignes de liaison SVG */
+.ftb-link {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ftb-link.link-locked {
+  stroke: #4e5461;
+  stroke-dasharray: 5 5;
+}
+
+.ftb-link.link-active {
+  stroke: #f5be3d;
+  stroke-dasharray: 9 6;
+  animation: ftbLinkFlow 1.4s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(245, 190, 61, 0.55));
+}
+
+.ftb-link.link-done {
+  stroke: #3ee07b;
+  filter: drop-shadow(0 0 5px rgba(62, 224, 123, 0.65));
+}
+
+@keyframes ftbLinkFlow {
+  from { stroke-dashoffset: 30; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* Nœuds de quêtes FTB Quests (Carrés biseautés & Losanges majeurs lumineux) */
+.ftb-node {
+  position: absolute;
+  width: 68px;
+  height: 68px;
+  transform: translate(-50%, -50%);
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.ftb-node.shape-diamond, .ftb-node.shape-diamond-blue {
+  width: 78px;
+  height: 78px;
+}
+
+.ftb-node-frame {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #3a342e 0%, #26221f 100%);
+  border: 2.5px solid #8a7a62;
+  clip-path: polygon(16% 0%, 84% 0%, 100% 16%, 100% 84%, 84% 100%, 16% 100%, 0% 84%, 0% 16%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.55);
+  transition: transform 0.12s ease;
+}
+
+.ftb-node:active .ftb-node-frame {
+  transform: scale(0.92);
+}
+
+/* Losange doré / bleu céleste lumineux pour les jalons majeurs */
+.ftb-node.shape-diamond .ftb-node-frame,
+.ftb-node.shape-diamond-blue .ftb-node-frame {
+  width: 56px;
+  height: 56px;
+  clip-path: none;
+  border-radius: 10px;
+  transform: rotate(45deg);
+  border-width: 3px;
+}
+
+.ftb-node.shape-diamond .ftb-node-icon,
+.ftb-node.shape-diamond-blue .ftb-node-icon {
+  transform: rotate(-45deg);
+}
+
+.ftb-node.shape-diamond .ftb-node-frame {
+  border-color: #f2bd41;
+  background: linear-gradient(135deg, #523b1c 0%, #2a1e10 100%);
+}
+
+.ftb-node.shape-diamond-blue .ftb-node-frame {
+  border-color: #54d1ff;
+  background: linear-gradient(135deg, #1b3d54 0%, #102433 100%);
+}
+
+.ftb-node-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* États visuels des nœuds */
+.ftb-node.state-locked .ftb-node-frame {
+  filter: grayscale(0.9) brightness(0.62);
+  border-color: #525763;
+}
+
+.ftb-node.state-active .ftb-node-frame {
+  border-color: #f7c948;
+  box-shadow: 0 0 14px rgba(247, 201, 72, 0.35);
+}
+
+.ftb-node.shape-diamond-blue.state-active .ftb-node-frame {
+  border-color: #62dcff;
+  box-shadow: 0 0 18px rgba(84, 209, 255, 0.5);
+}
+
+.ftb-node.state-claimable .ftb-node-frame {
+  border-color: #ffe259;
+  box-shadow: 0 0 22px rgba(255, 222, 89, 0.82);
+  animation: ftbPulse 1.5s ease-in-out infinite;
+}
+
+.ftb-node.state-claimed .ftb-node-frame {
+  border-color: #42e37f;
+  background: linear-gradient(180deg, #214a32 0%, #153020 100%);
+  box-shadow: 0 0 14px rgba(66, 227, 127, 0.38);
+}
+
+@keyframes ftbPulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.22); }
+}
+
+/* Badges sur le nœud (! rouge, ✓ vert, 🔒 cadenas) */
+.ftb-node-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  font-size: 0.74rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.ftb-node-badge.badge-claim {
+  background: linear-gradient(180deg, #ff4747, #c21818);
+  color: #fff;
+  border: 1.5px solid #ffe0e0;
+  box-shadow: 0 0 10px rgba(255, 65, 65, 0.9);
+}
+
+.ftb-node-badge.badge-done {
+  background: linear-gradient(180deg, #4ae885, #1e9e4c);
+  color: #fff;
+  border: 1.5px solid #d4ffe3;
+}
+
+.ftb-node-badge.badge-lock {
+  top: auto;
+  bottom: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  background: #292d36;
+  border: 1px solid #6b7280;
+  font-size: 0.65rem;
+}
+
+/* Étiquette & jauge fine sous le nœud */
+.ftb-node-caption {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+  width: 112px;
+}
+
+.ftb-node-name {
+  font-size: 0.67rem;
+  font-weight: 800;
+  color: #f3e6cc;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+  text-align: center;
+  line-height: 1.1;
+}
+
+.ftb-node.state-locked .ftb-node-name {
+  color: #8b919e;
+}
+
+.ftb-node-mini-bar {
+  width: 58px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 224, 150, 0.35);
+  overflow: hidden;
+}
+
+.ftb-node-mini-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59b12, #ffe259);
+}
+
+.ftb-node.state-claimed .ftb-node-mini-fill,
+.ftb-node.state-claimable .ftb-node-mini-fill {
+  background: linear-gradient(90deg, #2ec967, #6df59e);
+}
+
+.ftb-node-mini-num {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #ffd978;
+  text-shadow: 0 1px 2px #000;
+}
+
+/* Boutons de zoom en bas à droite du canevas */
+.ftb-zoom-controls {
+  position: absolute;
+  right: 12px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 12;
+}
+
+.ftb-zoom-btn {
+  appearance: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1.5px solid #a6783d;
+  background: rgba(38, 28, 22, 0.9);
+  color: #fff2d4;
+  font-size: 1.15rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+}
+
+.ftb-zoom-btn:active { transform: scale(0.92); }
+
+/* Vue Encyclopédie (Matériaux & Plan officiel) */
+.ftb-encyclopedia {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px;
+  background: linear-gradient(180deg, #221e1c 0%, #18171a 100%);
+}
+
+.ftb-enc-card {
+  background: linear-gradient(180deg, var(--parchment-light), var(--parchment-mid));
+  color: var(--ink);
+  border: 2.5px solid #8b5a2b;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+.ftb-enc-card h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  color: #42240f;
+}
+
+.codex-plan-frame {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #8b5a2b;
+  margin-bottom: 10px;
+}
+
+.codex-plan-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.stock-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.stock-box {
+  background: rgba(255, 250, 238, 0.86);
+  border: 1.5px solid #b5834b;
+  border-radius: 10px;
+  padding: 9px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+}
+
+/* Fiche détail parchemin d'une quête (au tap sur un nœud) */
+.ftb-detail-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: rgba(12, 10, 14, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+}
+
+.ftb-detail-card {
+  width: 100%;
+  max-width: 420px;
+  max-height: 86%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #f8edd6 0%, #e7d2aa 100%);
+  color: #2b1a0e;
+  border: 3px solid #6b411e;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.72), inset 0 0 0 2px #d9a95b;
+  overflow: hidden;
+}
+
+.ftb-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, #5c371c, #3d2210);
+  color: #fff6e0;
+  border-bottom: 2.5px solid #d4a459;
+}
+
+.ftb-detail-head-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ftb-detail-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(255, 236, 184, 0.16);
+  border: 1.5px solid #d9a44b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ftb-detail-header h3 {
+  margin: 2px 0 0;
+  font-size: 1rem;
+  line-height: 1.15;
+}
+
+.ftb-state-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  background: #6b573b;
+  color: #fff4d6;
+}
+
+.ftb-state-tag.tag-active { background: #c98614; color: #fff; }
+.ftb-state-tag.tag-claim { background: #d42b2b; color: #fff; }
+.ftb-state-tag.tag-done { background: #269c4f; color: #fff; }
+
+.ftb-detail-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ftb-pin-btn, .ftb-detail-close {
+  appearance: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1.5px solid #d4a459;
+  background: #331e10;
+  color: #fff4da;
+  font-size: 0.95rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.ftb-pin-btn.pinned {
+  background: linear-gradient(180deg, #ffd447, #e58e0c);
+  border-color: #fff3b8;
+  color: #3a1f0a;
+  box-shadow: 0 0 12px rgba(255, 212, 71, 0.7);
+}
+
+.ftb-detail-body {
+  padding: 14px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ftb-detail-desc {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.42;
+  color: #462b16;
+  font-style: italic;
+}
+
+.ftb-sec-label {
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: #7c4f24;
+  margin-bottom: 6px;
+}
+
+.ftb-obj-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ftb-obj-row {
+  background: rgba(255, 251, 240, 0.82);
+  border: 1.5px solid #bfa070;
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ftb-obj-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.83rem;
+  font-weight: 800;
+}
+
+.ftb-obj-bar {
+  height: 8px;
   border-radius: 999px;
   background: rgba(92, 54, 26, 0.18);
   overflow: hidden;
-  margin: 8px 0;
-  border: 1px solid rgba(92, 54, 26, 0.25);
 }
 
-.quest-bar-fill {
+.ftb-obj-fill {
   height: 100%;
   background: linear-gradient(90deg, #f59b12, #ffe259);
-  border-radius: 999px;
-  transition: width 0.25s ease;
 }
 
-.quest-card.completed .quest-bar-fill {
-  background: linear-gradient(90deg, #3aa832, #70e062);
+.ftb-obj-row.done .ftb-obj-fill {
+  background: linear-gradient(90deg, #27a851, #61eb8d);
 }
 
-.quest-actions {
+.ftb-reward-list {
   display: flex;
-  gap: 7px;
   flex-wrap: wrap;
+  gap: 7px;
+}
+
+.ftb-reward-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(255, 249, 232, 0.92);
+  border: 1.5px solid #c99442;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #3b2210;
+}
+
+.ftb-bldg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
 }
 
 .q-btn {
@@ -915,8 +1610,8 @@ html, body {
   background: #f6ead2;
   color: #3a2314;
   border-radius: 9px;
-  padding: 6px 10px;
-  font-size: 0.76rem;
+  padding: 7px 11px;
+  font-size: 0.78rem;
   font-weight: 800;
   cursor: pointer;
 }
@@ -933,52 +1628,50 @@ html, body {
   color: #fff;
 }
 
-.codex-plan-frame {
-  border-radius: 14px;
-  overflow: hidden;
-  border: 2.5px solid #8b5a2b;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
-  margin-bottom: 10px;
-}
-
-.codex-plan-img {
+.ftb-claim-btn {
+  appearance: none;
   width: 100%;
-  height: auto;
-  display: block;
+  min-height: 50px;
+  border-radius: 14px;
+  border: 2.5px solid #c8ffda;
+  background: linear-gradient(180deg, #52e37d 0%, #24a84d 60%, #187a35 100%);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 0 rgba(12, 68, 28, 0.75);
+  box-shadow: 0 4px 0 #105725, 0 6px 18px rgba(36, 168, 77, 0.45);
+  cursor: pointer;
 }
 
-.codex-legend-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 7px;
+.ftb-claim-btn:active {
+  transform: translateY(2px);
 }
 
-.legend-chip {
-  background: rgba(255, 250, 238, 0.85);
-  border: 1.5px solid #b5834b;
+.ftb-claimed-banner {
+  text-align: center;
+  padding: 9px;
   border-radius: 10px;
-  padding: 7px 9px;
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.stock-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.stock-box {
-  background: rgba(255, 250, 238, 0.85);
-  border: 1.5px solid #b5834b;
-  border-radius: 12px;
-  padding: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 800;
+  background: rgba(42, 168, 82, 0.16);
+  border: 1.5px solid #2fa857;
+  color: #186b32;
+  font-weight: 900;
   font-size: 0.85rem;
+}
+
+/* Bouton fermer réutilisé par la modal Options */
+.codex-close {
+  appearance: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #d4a459;
+  background: #3a2314;
+  color: #fff6e0;
+  font-size: 1.1rem;
+  font-weight: 900;
+  cursor: pointer;
 }
 
 /* ==========================================================================
